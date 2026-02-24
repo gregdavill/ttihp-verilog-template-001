@@ -9,12 +9,14 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+Based on incomming pixel clock, generates VGA timings and outputs a sliding squares pattern
 
 ## How to test
 
-Explain how to use your project
+Hook up the board to a VGA monitor as shown in this diagram.
+
+`diagram TBD`
 
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+VGA monitor
