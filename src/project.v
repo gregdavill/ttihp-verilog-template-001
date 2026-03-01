@@ -70,7 +70,7 @@ module tt_um_gregdavill_vga_demo (
   // Rotation: inverse-rotate display coords to get source coords
   wire signed [7:0] cos_val;
   wire signed [7:0] sin_val;
-  sincos_rom trig (.angle(angle), .cos_out(cos_val), .sin_out(sin_val));
+  sincos_rom trig (.clk(clk), .angle(angle), .cos_out(cos_val), .sin_out(sin_val));
 
   wire signed [6:0] cx = $signed({1'b0, x[5:0]}) - 7'sd32;
   wire signed [6:0] cy = $signed({1'b0, y[5:0]}) - 7'sd32;
@@ -84,6 +84,7 @@ module tt_um_gregdavill_vga_demo (
   wire [5:0] pixel_color = rot_in_bounds ? pixel_color_raw : 6'd0;
 
   bitmap_rom rom1 (
+      .clk(clk),
       .x(x[5:0]),
       .y(y[5:0]),
       .color(pixel_color_raw)
@@ -235,6 +236,7 @@ endmodule
 // --------------------------------------------------------
 
 module bitmap_rom (
+    input wire clk,
     input wire [5:0] x,
     input wire [5:0] y,
     output wire [5:0] color
@@ -447,8 +449,12 @@ module bitmap_rom (
     plane2[504] = 8'hff;  plane2[505] = 8'hff;  plane2[506] = 8'hff;  plane2[507] = 8'h07;  plane2[508] = 8'h80;  plane2[509] = 8'hff;  plane2[510] = 8'hff;  plane2[511] = 8'hff;
   end
 
-  // 3bpp lookup: byte = {y, x[5:3]},  bit = x[2:0]
-  wire [8:0] ba  = {y, x[5:3]};
+  reg [8:0] ba;
+
+  always @(posedge clk) begin
+    ba <= {y, x[5:3]};
+  end
+
   wire [2:0] idx = {plane2[ba][x[2:0]], plane1[ba][x[2:0]], plane0[ba][x[2:0]]};
   assign color = palette[idx];
 
@@ -457,6 +463,7 @@ endmodule
 // --------------------------------------------------------
 
 module sincos_rom (
+    input clk,
     input wire  [7:0] angle,
     output wire signed [7:0] cos_out,
     output wire signed [7:0] sin_out
@@ -530,7 +537,12 @@ module sincos_rom (
     mem[252] = 8'h7e;  mem[253] = 8'h7f;  mem[254] = 8'h7f;  mem[255] = 8'h7f;
   end
 
-  assign cos_out = mem[angle][7:0];
-  assign sin_out = mem[angle+64][7:0];
+  reg [7:0] adr;
+  always @(posedge clk) begin
+    adr <= angle;
+  end
+
+  assign cos_out = mem[adr][7:0];
+  assign sin_out = mem[adr+64][7:0];
 
 endmodule
